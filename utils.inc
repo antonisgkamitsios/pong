@@ -8,7 +8,14 @@ macro funcall1 fn, a {
   call fn
 }
 
-macro funcall3 fn, a, b, c, d {
+macro funcall2 fn, a, b {
+  mov rdi, a
+  mov rsi, b
+
+  call fn
+}
+
+macro funcall3 fn, a, b, c {
   mov rdi, a
   mov rsi, b
   mov rdx, c

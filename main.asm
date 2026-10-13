@@ -3,68 +3,17 @@ format ELF64
 section '.text' executable
 public _start
 extrn printf
-extrn InitWindow
-extrn WindowShouldClose
-extrn CloseWindow
-extrn BeginDrawing
-extrn EndDrawing
-extrn ClearBackground
-extrn DrawRectangle
-extrn GetScreenWidth
-extrn GetScreenHeight
-extrn DrawLine
 extrn _exit
 
+include 'raylib.inc'
 include 'utils.inc'
+
+
 
 macro exit code {
  funcall1 _exit, code
 }
 
-macro WindowShouldClose jump_to {
-  funcall WindowShouldClose
-  cmp rax, 1
-  je jump_to
-}
-
-macro CloseWindow {
-  funcall CloseWindow
-}
-
-macro InitWindow width, height, title {
-  funcall3 InitWindow, width, height, title
-}
-
-macro GetScreenWidth {
-  call GetScreenWidth
-  mov [w], rax
-}
-
-macro GetScreenHeight {
-  call GetScreenHeight
-  mov [h], rax
-}
-
-macro ClearBackground color {
-  funcall1 ClearBackground, color
-}
-
-macro BeginDrawing {
-  call BeginDrawing
-}
-
-macro EndDrawing {
-  call EndDrawing
-}
-
-macro DrawRectangle posX, posY, width, height, color {
-  funcall5 DrawRectangle, posX, posY, width, height, color
-}
-
-; RLAPI void DrawLine(int startPosX, int startPosY, int endPosX, int endPosY, Color color);                // Draw a line
-macro DrawLine startPosX, startPosY, endPosX, endPosY, color {
-  funcall DrawLine, startPosX, startPosY, endPosX, endPosY, color
-}
 
 WIDTH = 800
 HEIGHT = 600
@@ -75,6 +24,62 @@ BALL_HEIGHT = 20
 PLAYER_WIDTH = BALL_WIDTH
 PLAYER_HEIGHT = 100
 PLAYER_PADDING = BALL_WIDTH
+
+PLAYER_SPEED = 2
+
+
+
+; rdi void *player_y
+; rsi int key_up
+; rdx int key_down
+move_player:
+  push rdi
+  push rsi
+  push rdx
+
+  IsKeyDown rdx
+  cmp al, 1
+  je .move_down
+
+  IsKeyDown rsi
+  cmp al, 1
+  je .move_up
+
+
+  jmp .no_op
+
+.move_up:
+  pop rdx
+  pop rsi
+  pop rdi
+  mov rax, [rdi]
+  sub rax, PLAYER_SPEED
+
+  cmp rax, 0
+  je .over
+  mov [rdi], rax
+  jmp .over
+.move_down:
+  pop rdx
+  pop rsi
+  pop rdi
+
+  mov rax, [rdi]
+  add rax, PLAYER_SPEED
+
+  mov rbx, [h]
+  sub rbx, PLAYER_HEIGHT
+  cmp rax, rbx
+  je .over
+  mov [rdi], rax
+  jmp .over
+.over:
+  ret
+.no_op:
+  pop rdx
+  pop rsi
+  pop rdi
+  ret
 
 
 init_state: 
@@ -95,7 +100,6 @@ init_state:
   mov [player_1_x], PLAYER_PADDING
   mov [player_1_y], PLAYER_PADDING
 
-  ; p2_x = w - player_width - player_padding
   mov rax, [w]
   sub rax, PLAYER_WIDTH
   sub rax, PLAYER_PADDING
@@ -145,18 +149,16 @@ update_state:
   multiply [ball_dy], -1
   mov [ball_dy], rax
 .over_y:
+
+  funcall3 move_player, player_1_y, KEY_W, KEY_S
+  funcall3 move_player, player_2_y, KEY_UP, KEY_DOWN
   ret
 
+
 render_state: 
-  ; render ball
   DrawRectangle [ball_x], [ball_y], BALL_WIDTH, BALL_HEIGHT, 0xFFFFFFFF
-
-
-  ; render player_1
   DrawRectangle [player_1_x], [player_1_y], PLAYER_WIDTH, PLAYER_HEIGHT, 0xFFFFFFFF
   DrawRectangle [player_2_x], [player_2_y], PLAYER_WIDTH, PLAYER_HEIGHT, 0xFFFFFFFF
-
-
   ret
 
 _start:
@@ -166,6 +168,7 @@ _start:
 
 .again:
   WindowShouldClose .done
+
 
   call update_state
 
@@ -204,3 +207,4 @@ player_1_y rq 1
 
 player_2_x rq 1
 player_2_y rq 1
+
