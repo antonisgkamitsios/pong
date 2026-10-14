@@ -132,9 +132,27 @@ move_player:
   ret
 
 reset_ball:
+  ; ball velocity
   movss xmm0, [vel]
+
+  ; mov rdi, 0
+  ; mov rsi, 1
+  ; call GetRandomValue
+  GetRandomValue 0, 1
+  cmp rax, 0
+  je .negative
+
+  jmp .over
+
+.negative:
+  mulss xmm0, [rspeed]
+
+.over:
+
   movss [ball_vel.x], xmm0
   movss [ball_vel.y], xmm0
+
+  ; ball position
   GetScreenWidth
   divide rax, 2
   mov [ball_pos.x], eax
@@ -204,7 +222,7 @@ update_state:
   jmp .over_x
 
 
-  .flip_dx:
+.flip_dx:
   movss xmm0, [ball_vel.x]
   mulss xmm0, [rspeed]
   movss [ball_vel.x], xmm0

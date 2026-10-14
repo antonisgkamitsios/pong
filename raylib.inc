@@ -142,6 +142,7 @@ extrn GetCollisionRec
 extrn DrawText
 extrn MeasureText
 extrn TextFormat
+extrn GetRandomValue
 
 macro InitWindow width, height, title {
   funcall3 InitWindow, width, height, title
@@ -251,4 +252,11 @@ macro TextFormat text, arg1, arg2 {
   mov edx, arg2
   mov eax, 0
   call TextFormat
+}
+
+; RLAPI int GetRandomValue(int min, int max);                       // Get a random value between min and max (both included)
+macro GetRandomValue min, max {
+  mov rdi, min
+  mov rsi, max
+  call GetRandomValue
 }

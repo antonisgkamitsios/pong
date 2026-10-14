@@ -5,9 +5,6 @@
 
 int main()
 {
-
-  const char *text = "%d - %d";
-  TextFormat(text);
-
+  GetRandomValue(0, 1);
   return 0;
 }
