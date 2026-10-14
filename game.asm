@@ -175,6 +175,13 @@ update_state:
   GetFrameTime
   movss [delta], xmm0
 
+  movss xmm1, [last_scored]
+  addss xmm1, [delta]
+  movss [last_scored], xmm1
+
+  ucomiss xmm1, [wait_time]
+  jb .over_y
+
   ; x = x+v*dt
   mulss xmm0, [ball_vel.x]
   mulss xmm0, [ball_speed]
@@ -183,7 +190,7 @@ update_state:
   xorps xmm1, xmm1
   maxss xmm0, xmm1
   ucomiss xmm0, xmm1
-  je .player_2_score
+  je .player_2_scored
 
 
   movss xmm2, [w] 
@@ -191,7 +198,7 @@ update_state:
   subss xmm2, [ball_size.x]
   minss xmm0, xmm2
   ucomiss xmm0, xmm2
-  je .player_1_score
+  je .player_1_scored
 
   movss [ball_pos.x], xmm0
   jmp .over_x
@@ -236,15 +243,20 @@ update_state:
   funcall1 check_player_collision, player_2_pos
 
   ret
-.player_1_score:
+.player_1_scored:
   inc [player_1_score]
+  xorps xmm0, xmm0
+  movss [last_scored], xmm0
+
   jmp .over
-.player_2_score:
+.player_2_scored:
   inc [player_2_score]
+  xorps xmm0, xmm0
+  movss [last_scored], xmm0
 .over:
   call reset_ball
+.no_op:
   ret
-
 
 
 render_state:
@@ -326,6 +338,9 @@ rspeed dd -1.0
 vel dd 1.0
 player_speed dd PLAYER_SPEED
 ball_speed dd BALL_SPEED
+
+last_scored dd 0.0
+wait_time dd 1.5
 
 player_1_score dd 0
 player_2_score dd 0
