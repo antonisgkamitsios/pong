@@ -45,3 +45,7 @@ macro multiply a, b{
   mov rcx, b
   imul rcx
 }
+
+macro exit code {
+ funcall1 _exit, code
+}

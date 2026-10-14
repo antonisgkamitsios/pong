@@ -122,24 +122,33 @@ LOG_NONE = 7
 
 
 extrn InitWindow
+extrn SetTargetFPS
 extrn WindowShouldClose
 extrn CloseWindow
 extrn BeginDrawing
 extrn EndDrawing
 extrn ClearBackground
 extrn DrawRectangle
+extrn DrawRectangleV
+extrn GetFrameTime
 extrn GetScreenWidth
 extrn GetScreenHeight
 extrn DrawLine
 extrn IsKeyPressed
 extrn IsKeyDown
 extrn TraceLog
-
-
-
+extrn CheckCollisionRecs
+extrn GetCollisionRec
+extrn DrawText
+extrn MeasureText
+extrn TextFormat
 
 macro InitWindow width, height, title {
   funcall3 InitWindow, width, height, title
+}
+
+macro SetTargetFPS fps {
+  funcall1 SetTargetFPS, fps
 }
 
 macro WindowShouldClose jump_to {
@@ -152,14 +161,18 @@ macro CloseWindow {
   funcall CloseWindow
 }
 
+macro GetFrameTime {
+  funcall GetFrameTime
+}
+
 macro GetScreenWidth {
-  call GetScreenWidth
-  mov [w], rax
+  funcall GetScreenWidth
+  mov [w], eax
 }
 
 macro GetScreenHeight {
-  call GetScreenHeight
-  mov [h], rax
+  funcall GetScreenHeight
+  mov [h], eax
 }
 
 macro ClearBackground color {
@@ -167,15 +180,26 @@ macro ClearBackground color {
 }
 
 macro BeginDrawing {
-  call BeginDrawing
+  funcall BeginDrawing
 }
 
 macro EndDrawing {
-  call EndDrawing
+  funcall EndDrawing
 }
 
 macro DrawRectangle posX, posY, width, height, color {
   funcall5 DrawRectangle, posX, posY, width, height, color
+}
+macro DrawRectangleV position, size, color {
+  mov rax, position
+  movq xmm0, rax
+
+  mov rax, size
+  movq xmm1, rax
+
+  mov rdi, color 
+
+  call DrawRectangleV
 }
 
 macro DrawLine startPosX, startPosY, endPosX, endPosY, color {
@@ -191,4 +215,40 @@ macro IsKeyDown key {
 
 macro TraceLog log_level, text {
   funcall2 TraceLog, log_level, text
+}
+
+macro CheckCollisionRecs rec1_pos, rec1_size, rec2_pos, rec2_size {
+  movq xmm0, rec1_pos
+  movq xmm1, rec1_size
+  movq xmm2, rec2_pos
+  movq xmm3, rec2_size
+
+  call CheckCollisionRecs
+}
+; RLAPI void DrawText(const char *text, int posX, int posY, int fontSize, Color color);       // Draw text (using default font)
+macro DrawText text, posX, posY, fontSize, color {
+  funcall5 DrawText, text, posX, posY, fontSize, color
+}
+
+macro GetCollisionRec rec1_pos, rec1_size, rec2_pos, rec2_size {
+  movq xmm0, rec1_pos
+  movq xmm1, rec1_size
+  movq xmm2, rec2_pos
+  movq xmm3, rec2_size
+
+  call GetCollisionRec
+}
+
+macro MeasureText text, fontSize {
+  funcall2 MeasureText, text, fontSize
+}
+
+; RLAPI const char *TextFormat(const char *text, ...);                                        // Text formatting with variables (sprintf() style)
+macro TextFormat text, arg1, arg2 {
+
+  mov rdi, text
+  mov esi, arg1
+  mov edx, arg2
+  mov eax, 0
+  call TextFormat
 }
