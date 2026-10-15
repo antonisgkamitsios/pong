@@ -14,7 +14,10 @@ FACTOR = 100
 WIDTH = 16*FACTOR
 HEIGHT = 9*FACTOR
 
-SCORE_FONT = 80
+CENTER_LINES = 21
+CENTER_LINE_WIDTH = 2
+
+SCORE_FONT = 150
 
 BALL_SIZE = dword 20.0
 BALL_SPEED = dword 500.0
@@ -286,11 +289,52 @@ update_state:
   ret
 
 
+render_center:
+  mov eax, [w]
+  divide rax, 2
+  mov r11, rax
+  sub r11, CENTER_LINE_WIDTH
+
+  mov eax, [h]
+  ; int3
+  divide rax, CENTER_LINES
+  mov r13, rax
+
+
+  mov r10, 0
+.again:
+  cmp r10, CENTER_LINES
+  jge .over
+  mov r12, r10
+  multiply r12, r13
+  mov r12, rax
+
+  
+  ; cmp r10, 0
+  ; je .draw
+  
+  divide r10, 2
+  cmp edx, 1
+  je .skip
+
+.draw:
+  DrawRectangle r11, r12, CENTER_LINE_WIDTH, r13, COLOR_WHITE
+.skip:
+  inc r10
+  jmp .again
+
+.over:
+  ret
+
+
+
 render_state:
     push rdi
     DrawRectangleV [ball_pos], [ball_size], COLOR_WHITE
     DrawRectangleV [player_1_pos], [player_size], COLOR_WHITE
     DrawRectangleV [player_2_pos], [player_size], COLOR_WHITE
+
+    call render_center
 
 
     ; w/2 - size/2
@@ -340,7 +384,7 @@ _start:
 
 section '.data' writeable
 title db "Ping Pong in asm", 0
-score_text db "%d - %d", 0
+score_text db "%d   %d", 0
 
 w rd 1
 h rd 1
