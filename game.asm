@@ -399,7 +399,7 @@ player_size vector PLAYER_WIDTH, PLAYER_HEIGHT
 player_padding vector PLAYER_PADDING, PLAYER_PADDING
 player_vel vector 1.0, 1.0
 
-player_1_pos vector 0.0, 0.0
+player_1_pos vector PLAYER_PADDING, 0.0
 player_2_pos vector 0.0, 0.0
 
 collision_pos vector 0.0, 0.0
