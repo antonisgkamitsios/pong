@@ -10,10 +10,11 @@ include 'raylib.inc'
 include 'utils.inc'
 
 
-WIDTH = 800
-HEIGHT = 600
+FACTOR = 100
+WIDTH = 16*FACTOR
+HEIGHT = 9*FACTOR
 
-SCORE_FONT = 40
+SCORE_FONT = 80
 
 BALL_SIZE = dword 20.0
 BALL_SPEED = dword 500.0
@@ -134,10 +135,6 @@ move_player:
 reset_ball:
   ; ball velocity
   movss xmm0, [vel]
-
-  ; mov rdi, 0
-  ; mov rsi, 1
-  ; call GetRandomValue
   GetRandomValue 0, 1
   cmp rax, 0
   je .negative
@@ -148,7 +145,6 @@ reset_ball:
   mulss xmm0, [rspeed]
 
 .over:
-
   movss [ball_vel.x], xmm0
   movss [ball_vel.y], xmm0
 
@@ -176,6 +172,7 @@ init_state:
   call reset_ball
   
   ; init players state
+  GetScreenWidth
   mov eax, [w]
   mov [player_2_pos.x], eax
   movss xmm0, [player_2_pos.x]
@@ -183,6 +180,18 @@ init_state:
   subss xmm0, [player_size.x]
   subss xmm0, [player_padding.x]
   movss [player_2_pos.x], xmm0
+
+  GetScreenHeight
+  divide rax, 2
+  movd xmm0, eax
+  cvtdq2ps xmm0, xmm0
+
+  movss xmm1, [player_size.y]
+  divss xmm1, [two]
+  subss xmm0, xmm1
+
+  movss [player_1_pos.y], xmm0
+  movss [player_2_pos.y], xmm0
 
   ret
 
@@ -346,14 +355,15 @@ player_size vector PLAYER_WIDTH, PLAYER_HEIGHT
 player_padding vector PLAYER_PADDING, PLAYER_PADDING
 player_vel vector 1.0, 1.0
 
-player_1_pos vector PLAYER_PADDING, PLAYER_PADDING
-player_2_pos vector 0.0, PLAYER_PADDING
+player_1_pos vector 0.0, 0.0
+player_2_pos vector 0.0, 0.0
 
 collision_pos vector 0.0, 0.0
 collision_size vector 0.0, 0.0
 
 rspeed dd -1.0
 vel dd 1.0
+two dd 2.0
 player_speed dd PLAYER_SPEED
 ball_speed dd BALL_SPEED
 
